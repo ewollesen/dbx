@@ -33,10 +33,15 @@ func FormatFile(path string) (formatted []byte, err error) {
 
 	root, err := scanRoot(scanner)
 	if err != nil {
-		return nil, err
+		return nil, addContext(data, err)
 	}
 
-	return formatRoot(root)
+	formatted, err = formatRoot(root)
+	if err != nil {
+		return nil, addContext(data, err)
+	}
+
+	return formatted, nil
 }
 
 func Format(data []byte) (formatted []byte, err error) {
@@ -47,10 +52,15 @@ func Format(data []byte) (formatted []byte, err error) {
 
 	root, err := scanRoot(scanner)
 	if err != nil {
-		return nil, err
+		return nil, addContext(data, err)
 	}
 
-	return formatRoot(root)
+	formatted, err = formatRoot(root)
+	if err != nil {
+		return nil, addContext(data, err)
+	}
+
+	return formatted, nil
 }
 
 func formatRoot(node *listNode) (formatted []byte, err error) {

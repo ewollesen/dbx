@@ -18,9 +18,31 @@ import (
 	"io/ioutil"
 	"sort"
 
+	"github.com/spacemonkeygo/errors"
 	"gopkg.in/spacemonkeygo/dbx.v1/ast"
 	"gopkg.in/spacemonkeygo/dbx.v1/consts"
 )
+
+var contextSym = errors.GenSym()
+
+func setContext(err error, context string) errors.ErrorOption {
+	return errors.SetData(contextSym, context)
+}
+
+func GetContext(err error) string {
+	s, _ := errors.GetData(err, contextSym).(string)
+	return s
+}
+
+func addContext(source []byte, err error) error {
+	if pos := getErrorPosition(err); pos != nil {
+		context := generateContext(source, *pos, 0)
+		// TODO(jeff): this sucks and our error library sucks. why can't i add
+		// an option to the error? ugh. this loses stack information
+		return Error.Wrap(errors.WrappedErr(err), setContext(err, context))
+	}
+	return err
+}
 
 func ParseFile(path string) (root *ast.Root, err error) {
 	data, err := ioutil.ReadFile(path)
@@ -32,7 +54,12 @@ func ParseFile(path string) (root *ast.Root, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return parseRoot(scanner)
+
+	root, err = parseRoot(scanner)
+	if err != nil {
+		return nil, addContext(data, err)
+	}
+	return root, nil
 }
 
 func Parse(data []byte) (root *ast.Root, err error) {
@@ -40,7 +67,12 @@ func Parse(data []byte) (root *ast.Root, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return parseRoot(scanner)
+
+	root, err = parseRoot(scanner)
+	if err != nil {
+		return nil, addContext(data, err)
+	}
+	return root, nil
 }
 
 func debugConsume(node *tupleNode) error {

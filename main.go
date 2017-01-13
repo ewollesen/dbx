@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 
 	cli "github.com/jawher/mow.cli"
+	"github.com/spacemonkeygo/errors"
 	"gopkg.in/spacemonkeygo/dbx.v1/code/golang"
 	"gopkg.in/spacemonkeygo/dbx.v1/ir"
 	"gopkg.in/spacemonkeygo/dbx.v1/ir/xform"
@@ -37,7 +38,10 @@ import (
 func main() {
 	die := func(err error) {
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintln(os.Stderr, errors.GetMessage(err))
+			if context := syntax.GetContext(err); context != "" {
+				fmt.Fprintln(os.Stderr, context)
+			}
 			cli.Exit(1)
 		}
 	}

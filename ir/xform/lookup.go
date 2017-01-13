@@ -68,7 +68,7 @@ func (l *lookup) FindField(ref *ast.FieldRef) (*ir.Field, error) {
 	model_link := l.models[ref.Model.Value]
 	if model_link == nil {
 		return nil, Error.New("%s: no model %q defined",
-			ref.Pos, ref.Model)
+			ref.Pos, ref.Model.Value)
 	}
 	return model_link.FindField(ref.Relative())
 }
